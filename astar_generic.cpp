@@ -22,12 +22,28 @@
 #define DUMMY 1
 using namespace std;
 
-
+int num_steps = 0;
+int mr_proof = 0;
 typedef long long int lli;
 typedef std::set<pair<int, lli> >::iterator It;
 set<pair<int, lli> > openlist;
 map <lli,int> fval;
 map <lli,int> closedlist;
+map <lli, lli> child_parent;
+lli goal_node;
+lli start_node;
+puzzle p(352814670);
+
+// backtracing path
+void backtrace_path(lli node){
+	if(node != start_node){
+		backtrace_path(child_parent[node]);
+	}
+	p.print(node);
+	num_steps++;
+}
+
+
 
 
 // function to modify openlist
@@ -66,31 +82,34 @@ void clMod(lli node){
 
 //main function to run search algo.
 int main(){
-	puzzle p(13425786);
-	lli goal_node = 1234567890;
-	lli start_node = p.start();
-	cout << p.h(start_node) << endl;
+	
+	goal_node = 123456780;
+	start_node = p.start();
+	
 	//inserting the start node into openlist.
 	olMod('+', start_node, p.h(start_node));
-
+	cout << "*SEARCH STARTED*" << endl;
 	while(openlist.begin()->second != goal_node){
+		num_steps++;
 		lli node = openlist.begin()->second;
-		cout << "node to be expanded: " << node << endl;
 		int par_gval = openlist.begin()->first - p.h(node);
+
 		//removing the node from openlist and insering it into closedlist.
 		olMod('-',DUMMY, DUMMY);
 		clMod(node);
-
 		vector<pair<lli,int> > neighbours = p.get_neighs(node);
+
 		for(int i = 0; i < neighbours.size(); i++){
 			int neigh_node = neighbours[i].first;
 			int edge_cost = neighbours[i].second;
 
 			//if neighbour is in closedlist
-			if(closedlist.find(neigh_node) != fval.end()){
-				cout << "present g value: " << fval[neigh_node] - p.h(neigh_node) << endl;
-				cout << "g value a/c to new path: " << par_gval + edge_cost << endl;		 
+			if(closedlist.find(neigh_node) != closedlist.end()){
+				if((fval[neigh_node] - p.h(neigh_node)) > (par_gval + edge_cost)){
+					mr_proof++;
+				}
 			}
+
 			//neighbour not in closedlist
 			else{
 				//neigh in openlist
@@ -98,17 +117,26 @@ int main(){
 					//if new short path found
 					if(fval[neigh_node] - p.h(neigh_node) > par_gval + edge_cost){
 						olMod('*', neigh_node, par_gval + edge_cost + p.h(neigh_node));
+						child_parent.erase(neigh_node);
+						child_parent[neigh_node] = node;
 					}
 				}
+
 				//neigh not in openlist
 				else{
 					olMod('+', neigh_node, par_gval+edge_cost+ p.h(neigh_node));
+					child_parent.erase(neigh_node);
+					child_parent[neigh_node] = node;
 				}
 			}
 		}
 
 	}
+	
 	cout << "*GOAL NODE REACHED*" << endl;
+	backtrace_path(goal_node);
+	// cout << "Number of nodes whose gval changed after adding to closed list: " << mr_proof << endl;
+	cout << "Number of nodes expanded: " << num_steps << endl;
 
 	return 0;
 }
