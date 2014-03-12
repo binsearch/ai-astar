@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
 typedef long long int lli;
+#define MONOTONE 8
 
 class puzzle
 {
@@ -29,7 +30,6 @@ lli puzzle::start(){
 } 
 
 //heuristic for number of displaced tiles.
-
 int puzzle::h(lli node){
 	int count = 0;
 	if(node%10) count++;
@@ -38,7 +38,8 @@ int puzzle::h(lli node){
 		if(node % 10 != i) count++;
 		node = node /10;
 	}
-	return count;
+	return MONOTONE*count;
+
 }
 
 
@@ -49,17 +50,20 @@ int puzzle::h(lli node){
 	for(int i = 2; i >= 0; i--){
 		for(int j = 2; j >= 0; j--){
 			int rem = node % 10;
-			int row = (rem -1)/3;
-			int col = (rem-1)%3;
-			cnt+= abs(row-i) + abs(col-j);
+			if(rem == 0){
+				cnt+= abs(2-i) + abs(2-j);
+			}
+			else{
+				int row = (rem -1)/3;
+				int col = (rem-1)%3;
+				cnt+= abs(row-i) + abs(col-j);
+			}
 			node = node / 10;
 		}
 	}
-	return cnt;
+	return MONOTONE*cnt;
 }
 */
-
-
 lli puzzle::gen_node(std::vector<vector<int> > digit_rep){
 	lli node = 0;
 	for(int i = 0; i < 3; i++){
